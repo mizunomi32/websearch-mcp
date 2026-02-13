@@ -73,3 +73,82 @@ jobs:
             websearch-mcp-linux-amd64.tar.gz
             websearch-mcp-darwin-arm64.tar.gz
             websearch-mcp-darwin-amd64.tar.gz
+
+  update-formula:
+    name: Update Homebrew Formula
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download darwin tarballs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "${{ github.ref_name }}" \
+            --pattern 'websearch-mcp-darwin-*.tar.gz' \
+            --dir /tmp/formula-assets
+
+      - name: Compute SHA256 and update Formula
+        run: |
+          SHA_ARM64=$(sha256sum /tmp/formula-assets/websearch-mcp-darwin-arm64.tar.gz | awk '{print $1}')
+          SHA_AMD64=$(sha256sum /tmp/formula-assets/websearch-mcp-darwin-amd64.tar.gz | awk '{print $1}')
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+
+          ruby -e '
+            path = "Formula/websearch-mcp.rb"
+            content = File.read(path)
+
+            version = ARGV[0]
+            tag     = ARGV[1]
+            sha_arm = ARGV[2]
+            sha_amd = ARGV[3]
+
+            repo = "https://github.com/mizunomi32/websearch-mcp/releases/download"
+
+            content.gsub!(/version ".*?"/, %Q{version "#{version}"})
+            content.gsub!(
+              /url "#{Regexp.escape(repo)}\/v[^"]*\/websearch-mcp-darwin-arm64\.tar\.gz"/,
+              %Q{url "#{repo}/#{tag}/websearch-mcp-darwin-arm64.tar.gz"}
+            )
+            content.gsub!(
+              /url "#{Regexp.escape(repo)}\/v[^"]*\/websearch-mcp-darwin-amd64\.tar\.gz"/,
+              %Q{url "#{repo}/#{tag}/websearch-mcp-darwin-amd64.tar.gz"}
+            )
+
+            lines = content.lines
+            in_arm = false
+            in_amd = false
+            lines.each_with_index do |line, i|
+              if line.include?("websearch-mcp-darwin-arm64.tar.gz")
+                in_arm = true
+              elsif line.include?("websearch-mcp-darwin-amd64.tar.gz")
+                in_amd = true
+              elsif in_arm && line =~ /sha256 "/
+                lines[i] = line.sub(/sha256 ".*?"/, %Q{sha256 "#{sha_arm}"})
+                in_arm = false
+              elsif in_amd && line =~ /sha256 "/
+                lines[i] = line.sub(/sha256 ".*?"/, %Q{sha256 "#{sha_amd}"})
+                in_amd = false
+              end
+            end
+
+            File.write(path, lines.join)
+          ' "$VERSION" "$TAG" "$SHA_ARM64" "$SHA_AMD64"
+
+      - name: Verify Formula syntax
+        run: ruby -c Formula/websearch-mcp.rb
+
+      - name: Commit and push
+        run: |
+          git diff --quiet Formula/websearch-mcp.rb && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/websearch-mcp.rb
+          git commit -m "chore: update Homebrew formula for ${{ github.ref_name }}"
+          git push

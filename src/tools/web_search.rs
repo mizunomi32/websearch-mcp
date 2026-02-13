@@ -33,7 +33,27 @@ pub async fn execute_web_search(
     max_results: usize,
     timeout_secs: u64,
 ) -> Result<String, WebSearchError> {
-    todo!()
+    if query.is_empty() {
+        return Err(WebSearchError::EmptyQuery);
+    }
+
+    let response = client
+        .get(format!("{}/html/", base_url))
+        .query(&[("q", query)])
+        .send()
+        .await
+        .map_err(|e| {
+            if e.is_timeout() {
+                WebSearchError::Timeout(timeout_secs)
+            } else {
+                WebSearchError::HttpError(e)
+            }
+        })?;
+
+    let response = response.error_for_status()?;
+    let html = response.text().await?;
+    let results = parse_html_results(&html, max_results);
+    Ok(format_results_markdown(query, &results))
 }
 
 #[cfg(test)]

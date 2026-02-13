@@ -1,6 +1,7 @@
 use scraper::{Html, Selector};
 
-use crate::models::search::SearchResult;
+use crate::error::WebSearchError;
+use crate::models::search::{format_results_markdown, SearchResult};
 
 pub fn parse_html_results(html: &str, max_results: usize) -> Vec<SearchResult> {
     let document = Html::parse_document(html);
@@ -23,6 +24,16 @@ pub fn parse_html_results(html: &str, max_results: usize) -> Vec<SearchResult> {
         })
         .take(max_results)
         .collect()
+}
+
+pub async fn execute_web_search(
+    client: &reqwest::Client,
+    base_url: &str,
+    query: &str,
+    max_results: usize,
+    timeout_secs: u64,
+) -> Result<String, WebSearchError> {
+    todo!()
 }
 
 #[cfg(test)]

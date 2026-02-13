@@ -31,7 +31,15 @@ DuckDuckGo を使った Web 検索機能を提供する MCP (Model Context Proto
 - Rust toolchain (1.75 以上推奨)
 - ネットワーク接続（DuckDuckGo へのアクセスが必要）
 
-## ビルド・インストール
+## インストール
+
+### Homebrew (macOS)
+
+```bash
+brew install mizunomi32/websearch-mcp/websearch-mcp
+```
+
+### ソースからビルド
 
 ```bash
 # リポジトリをクローン

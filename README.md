@@ -1,0 +1,89 @@
+# websearch-mcp
+
+DuckDuckGo を使った Web 検索機能を提供する MCP (Model Context Protocol) サーバーです。Rust で実装されており、API キー不要で利用できます。
+
+## 機能一覧
+
+本サーバーは以下の 2 つの MCP ツールを提供します。
+
+| ツール名 | 説明 | データソース |
+|---|---|---|
+| `web_search` | キーワードによる Web 検索を実行し、検索結果一覧を返す | DuckDuckGo HTML Lite (`html.duckduckgo.com`) をスクレイピング |
+| `instant_answer` | クエリに対する即時回答（定義・要約・関連トピック等）を返す | DuckDuckGo Instant Answer API (`api.duckduckgo.com`) |
+
+## 技術スタック
+
+| カテゴリ | クレート / 技術 |
+|---|---|
+| MCP SDK | [rmcp](https://crates.io/crates/rmcp) (公式 Rust SDK) |
+| HTTP クライアント | [reqwest](https://crates.io/crates/reqwest) |
+| HTML パーサー | [scraper](https://crates.io/crates/scraper) |
+| 非同期ランタイム | [tokio](https://crates.io/crates/tokio) |
+| シリアライズ | [serde](https://crates.io/crates/serde) / [serde_json](https://crates.io/crates/serde_json) |
+| JSON Schema 生成 | [schemars](https://crates.io/crates/schemars) |
+| エラーハンドリング | [thiserror](https://crates.io/crates/thiserror) |
+| ログ | [tracing](https://crates.io/crates/tracing) / [tracing-subscriber](https://crates.io/crates/tracing-subscriber) |
+
+## 前提条件
+
+- Rust toolchain (1.75 以上推奨)
+- ネットワーク接続（DuckDuckGo へのアクセスが必要）
+
+## ビルド・インストール
+
+```bash
+# リポジトリをクローン
+git clone https://github.com/mizunomi32/websearch-mcp.git
+cd websearch-mcp
+
+# リリースビルド
+cargo build --release
+
+# バイナリは target/release/websearch-mcp に生成されます
+```
+
+## 使い方
+
+### Claude Desktop での設定
+
+`claude_desktop_config.json` に以下を追加します。
+
+```json
+{
+  "mcpServers": {
+    "websearch": {
+      "command": "/path/to/websearch-mcp"
+    }
+  }
+}
+```
+
+### Claude Code での設定
+
+`.mcp.json` に以下を追加します。
+
+```json
+{
+  "mcpServers": {
+    "websearch": {
+      "command": "/path/to/websearch-mcp"
+    }
+  }
+}
+```
+
+サーバーは stdio トランスポートで MCP 通信を行います。
+
+## 設定
+
+環境変数で動作をカスタマイズできます。
+
+| 環境変数 | 説明 | デフォルト値 |
+|---|---|---|
+| `WEBSEARCH_MAX_RESULTS` | `web_search` のデフォルト最大検索結果数 | `10` |
+| `WEBSEARCH_TIMEOUT_SECS` | HTTP リクエストのタイムアウト（秒） | `10` |
+| `WEBSEARCH_USER_AGENT` | HTTP リクエストに使用する User-Agent 文字列 | `websearch-mcp/0.1` |
+
+## ライセンス
+
+MIT License

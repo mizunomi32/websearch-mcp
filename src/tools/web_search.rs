@@ -1,7 +1,28 @@
+use scraper::{Html, Selector};
+
 use crate::models::search::SearchResult;
 
 pub fn parse_html_results(html: &str, max_results: usize) -> Vec<SearchResult> {
-    todo!()
+    let document = Html::parse_document(html);
+    let result_selector = Selector::parse(".result").unwrap();
+    let title_selector = Selector::parse(".result__a").unwrap();
+    let snippet_selector = Selector::parse(".result__snippet").unwrap();
+
+    document
+        .select(&result_selector)
+        .filter_map(|result| {
+            let title_el = result.select(&title_selector).next()?;
+            let title = title_el.text().collect::<String>().trim().to_string();
+            let url = title_el.value().attr("href")?.to_string();
+            let snippet = result
+                .select(&snippet_selector)
+                .next()
+                .map(|el| el.text().collect::<String>().trim().to_string())
+                .unwrap_or_default();
+            Some(SearchResult { title, url, snippet })
+        })
+        .take(max_results)
+        .collect()
 }
 
 #[cfg(test)]

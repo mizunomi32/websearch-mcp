@@ -1,12 +1,51 @@
-use crate::models::instant_answer::{InstantAnswerResponse, RelatedTopic, ResultItem};
+use crate::models::instant_answer::{InstantAnswerResponse, RelatedTopic};
 
 pub fn format_instant_answer(query: &str, response: &InstantAnswerResponse) -> String {
-    todo!()
+    let mut output = format!("## Instant Answer for \"{query}\"\n\n");
+
+    let has_abstract = !response.abstract_text.is_empty();
+    let has_related = !response.related_topics.is_empty();
+
+    if !has_abstract && !has_related {
+        output.push_str("No instant answer available for this query.\n\n");
+        output.push_str("_Source: DuckDuckGo Instant Answer API_");
+        return output;
+    }
+
+    if has_abstract {
+        output.push_str("### Abstract\n");
+        output.push_str(&response.abstract_text);
+        output.push_str("\n\n");
+        output.push_str(&format!("**Source:** {}\n", response.abstract_source));
+        output.push_str(&format!("**URL:** {}\n\n", response.abstract_url));
+    }
+
+    if has_related {
+        output.push_str("### Related Topics\n");
+        for topic in &response.related_topics {
+            match topic {
+                RelatedTopic::Topic(item) => {
+                    output.push_str(&format!("- **{}**\n", item.text));
+                }
+                RelatedTopic::Category { name, topics } => {
+                    output.push_str(&format!("\n**{}**\n", name));
+                    for item in topics {
+                        output.push_str(&format!("- **{}**\n", item.text));
+                    }
+                }
+            }
+        }
+        output.push('\n');
+    }
+
+    output.push_str("_Source: DuckDuckGo Instant Answer API_");
+    output
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::instant_answer::ResultItem;
 
     #[test]
     fn test_format_normal() {

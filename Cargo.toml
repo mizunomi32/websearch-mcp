@@ -1,0 +1,21 @@
+[package]
+name = "websearch-mcp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rmcp = { version = "0.15", features = ["server", "transport-io"] }
+reqwest = { version = "0.12", features = ["json"] }
+scraper = "0.22"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+schemars = "0.8"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+wiremock = "0.6"
+tokio-test = "0.4"
+assert_matches = "1.5"

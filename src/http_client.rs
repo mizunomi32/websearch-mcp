@@ -4,7 +4,10 @@ use std::time::Duration;
 use crate::config::Config;
 
 pub fn build_http_client(config: &Config) -> Result<Client, reqwest::Error> {
-    todo!()
+    Client::builder()
+        .user_agent(&config.user_agent)
+        .timeout(Duration::from_secs(config.timeout_secs))
+        .build()
 }
 
 #[cfg(test)]

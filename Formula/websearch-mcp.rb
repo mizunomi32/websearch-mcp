@@ -1,16 +1,16 @@
 class WebsearchMcp < Formula
   desc "MCP server providing DuckDuckGo web search"
   homepage "https://github.com/mizunomi32/websearch-mcp"
-  version "0.0.1"
+  version "0.1.0"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/mizunomi32/websearch-mcp/releases/download/v0.0.1/websearch-mcp-darwin-arm64.tar.gz"
-      sha256 "aab28a14f492a03f84901542fdc0836cbeb67e4c1a1b6f668005d1505f1ccc1c"
+      url "https://github.com/mizunomi32/websearch-mcp/releases/download/v0.1.0/websearch-mcp-darwin-arm64.tar.gz"
+      sha256 "b1034c0bdf7d391d921a5a93bb9dcfb19034b92d8c5866bccbc3751b5b5796fd"
     else
-      url "https://github.com/mizunomi32/websearch-mcp/releases/download/v0.0.1/websearch-mcp-darwin-amd64.tar.gz"
-      sha256 "fb3d285065bdaae7b699439804fbb90d45b9a1e6ccf6662efd7d69dd51eaa505"
+      url "https://github.com/mizunomi32/websearch-mcp/releases/download/v0.1.0/websearch-mcp-darwin-amd64.tar.gz"
+      sha256 "216a5676589e3d415d559b1a6a34c7d55e3c43baf8f069ff256b49e8bb315955"
     end
   end
 

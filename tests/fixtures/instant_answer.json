@@ -1,0 +1,20 @@
+{
+  "Abstract": "Rust is a multi-paradigm, general-purpose programming language that emphasizes performance, type safety, and concurrency.",
+  "AbstractSource": "Wikipedia",
+  "AbstractURL": "https://en.wikipedia.org/wiki/Rust_(programming_language)",
+  "Answer": "",
+  "Definition": "",
+  "DefinitionSource": "",
+  "DefinitionURL": "",
+  "RelatedTopics": [
+    {
+      "Text": "Cargo - The Rust package manager",
+      "FirstURL": "https://duckduckgo.com/Cargo_(Rust)"
+    },
+    {
+      "Text": "Crates.io - The Rust community's crate registry",
+      "FirstURL": "https://duckduckgo.com/Crates.io"
+    }
+  ],
+  "Type": "A"
+}

@@ -1,0 +1,29 @@
+{
+  "Abstract": "",
+  "AbstractSource": "",
+  "AbstractURL": "",
+  "Answer": "",
+  "Definition": "",
+  "DefinitionSource": "",
+  "DefinitionURL": "",
+  "RelatedTopics": [
+    {
+      "Text": "Java (programming language) - A high-level, class-based, object-oriented programming language",
+      "FirstURL": "https://duckduckgo.com/Java_(programming_language)"
+    },
+    {
+      "Name": "Programming",
+      "Topics": [
+        {
+          "Text": "Java Platform - A set of software programs and specifications",
+          "FirstURL": "https://duckduckgo.com/Java_platform"
+        },
+        {
+          "Text": "Java virtual machine - A virtual machine for running Java programs",
+          "FirstURL": "https://duckduckgo.com/Java_virtual_machine"
+        }
+      ]
+    }
+  ],
+  "Type": "D"
+}

@@ -36,7 +36,8 @@ DuckDuckGo を使った Web 検索機能を提供する MCP (Model Context Proto
 ### Homebrew (macOS)
 
 ```bash
-brew install mizunomi32/websearch-mcp/websearch-mcp
+brew tap mizunomi32/websearch-mcp https://github.com/mizunomi32/websearch-mcp.git
+brew install websearch-mcp
 ```
 
 ### ソースからビルド

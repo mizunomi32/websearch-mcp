@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub struct Config {
     pub max_results: usize,
     pub timeout_secs: u64,

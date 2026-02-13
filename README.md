@@ -1,5 +1,7 @@
 # websearch-mcp
 
+[![CI](https://github.com/mizunomi32/websearch-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/mizunomi32/websearch-mcp/actions/workflows/ci.yml)
+
 DuckDuckGo を使った Web 検索機能を提供する MCP (Model Context Protocol) サーバーです。Rust で実装されており、API キー不要で利用できます。
 
 ## 機能一覧
@@ -83,6 +85,48 @@ cargo build --release
 | `WEBSEARCH_MAX_RESULTS` | `web_search` のデフォルト最大検索結果数 | `10` |
 | `WEBSEARCH_TIMEOUT_SECS` | HTTP リクエストのタイムアウト（秒） | `10` |
 | `WEBSEARCH_USER_AGENT` | HTTP リクエストに使用する User-Agent 文字列 | `websearch-mcp/0.1` |
+
+## 開発
+
+### テスト実行
+
+```bash
+cargo test -- --test-threads=1
+```
+
+> **Note:** 一部のテストがグローバルな状態（環境変数など）を共有するため、`--test-threads=1` でシングルスレッド実行する必要があります。
+
+### Lint・フォーマット
+
+```bash
+# フォーマットチェック
+cargo fmt --all --check
+
+# Lint チェック
+cargo clippy --all-targets -- -D warnings
+```
+
+### CI
+
+GitHub Actions により、push および Pull Request 時にテスト・Lint・フォーマットチェックが自動実行されます。
+
+## プロジェクト構造
+
+```
+src/
+├── main.rs           # エントリーポイント
+├── lib.rs            # モジュール再エクスポート
+├── server.rs         # MCP サーバー定義
+├── config.rs         # 環境変数読み込み
+├── error.rs          # エラー型定義
+├── http_client.rs    # HTTP クライアント構築
+├── tools/
+│   ├── web_search.rs      # Web 検索（HTML パース）
+│   └── instant_answer.rs  # Instant Answer（API 連携）
+└── models/
+    ├── search.rs          # SearchResult 構造体
+    └── instant_answer.rs  # API レスポンスモデル
+```
 
 ## ライセンス
 

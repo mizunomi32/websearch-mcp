@@ -107,10 +107,9 @@ async fn test_web_search_handles_empty_results() {
         .await;
 
     let client = build_test_client(10);
-    let result =
-        execute_web_search(&client, &server.uri(), "xyzzy12345noresult", 10, 10)
-            .await
-            .unwrap();
+    let result = execute_web_search(&client, &server.uri(), "xyzzy12345noresult", 10, 10)
+        .await
+        .unwrap();
 
     assert!(result.contains("No results found."));
 }

@@ -18,12 +18,7 @@ async fn setup_e2e(
         user_agent: "test-agent".to_string(),
     };
     let client = build_http_client(&config).unwrap();
-    let server = Server::with_base_urls(
-        client,
-        config,
-        html_mock.uri(),
-        api_mock.uri(),
-    );
+    let server = Server::with_base_urls(client, config, html_mock.uri(), api_mock.uri());
 
     let (server_transport, client_transport) = tokio::io::duplex(4096);
     tokio::spawn(async move {

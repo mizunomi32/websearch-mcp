@@ -55,7 +55,12 @@ pub async fn execute_instant_answer(
 
     let response = client
         .get(format!("{}/", base_url))
-        .query(&[("q", query), ("format", "json"), ("no_html", "1"), ("skip_disambig", "1")])
+        .query(&[
+            ("q", query),
+            ("format", "json"),
+            ("no_html", "1"),
+            ("skip_disambig", "1"),
+        ])
         .send()
         .await
         .map_err(|e| {
@@ -86,7 +91,9 @@ mod tests {
         assert!(output.contains("### Abstract"));
         assert!(output.contains("performance, type safety, and concurrency"));
         assert!(output.contains("**Source:** Wikipedia"));
-        assert!(output.contains("**URL:** https://en.wikipedia.org/wiki/Rust_(programming_language)"));
+        assert!(
+            output.contains("**URL:** https://en.wikipedia.org/wiki/Rust_(programming_language)")
+        );
         assert!(output.contains("### Related Topics"));
         assert!(output.contains("Cargo"));
         assert!(output.contains("_Source: DuckDuckGo Instant Answer API_"));
@@ -172,17 +179,13 @@ mod tests {
             definition: String::new(),
             definition_source: String::new(),
             definition_url: String::new(),
-            related_topics: vec![
-                RelatedTopic::Category {
-                    name: "Science".to_string(),
-                    topics: vec![
-                        ResultItem {
-                            text: "Physics - Study of matter".to_string(),
-                            first_url: "https://example.com/physics".to_string(),
-                        },
-                    ],
-                },
-            ],
+            related_topics: vec![RelatedTopic::Category {
+                name: "Science".to_string(),
+                topics: vec![ResultItem {
+                    text: "Physics - Study of matter".to_string(),
+                    first_url: "https://example.com/physics".to_string(),
+                }],
+            }],
             response_type: "D".to_string(),
         };
         let output = format_instant_answer("test", &response);

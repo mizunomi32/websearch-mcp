@@ -20,7 +20,11 @@ pub fn parse_html_results(html: &str, max_results: usize) -> Vec<SearchResult> {
                 .next()
                 .map(|el| el.text().collect::<String>().trim().to_string())
                 .unwrap_or_default();
-            Some(SearchResult { title, url, snippet })
+            Some(SearchResult {
+                title,
+                url,
+                snippet,
+            })
         })
         .take(max_results)
         .collect()
@@ -67,7 +71,9 @@ mod tests {
         assert_eq!(results.len(), 3);
         assert_eq!(results[0].title, "The Rust Programming Language");
         assert_eq!(results[0].url, "https://www.rust-lang.org/");
-        assert!(results[0].snippet.contains("reliable and efficient software"));
+        assert!(results[0]
+            .snippet
+            .contains("reliable and efficient software"));
     }
 
     #[test]
@@ -75,7 +81,10 @@ mod tests {
         let html = include_str!("../../tests/fixtures/search_results.html");
         let results = parse_html_results(html, 10);
         assert_eq!(results[1].title, "Rust (programming language) - Wikipedia");
-        assert_eq!(results[2].title, "The Rust Programming Language - Rust Book");
+        assert_eq!(
+            results[2].title,
+            "The Rust Programming Language - Rust Book"
+        );
     }
 
     #[test]

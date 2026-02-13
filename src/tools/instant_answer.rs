@@ -49,7 +49,27 @@ pub async fn execute_instant_answer(
     query: &str,
     timeout_secs: u64,
 ) -> Result<String, WebSearchError> {
-    todo!()
+    if query.is_empty() {
+        return Err(WebSearchError::EmptyQuery);
+    }
+
+    let response = client
+        .get(format!("{}/", base_url))
+        .query(&[("q", query), ("format", "json"), ("no_html", "1"), ("skip_disambig", "1")])
+        .send()
+        .await
+        .map_err(|e| {
+            if e.is_timeout() {
+                WebSearchError::Timeout(timeout_secs)
+            } else {
+                WebSearchError::HttpError(e)
+            }
+        })?;
+
+    let response = response.error_for_status()?;
+    let body = response.text().await?;
+    let ia_response: InstantAnswerResponse = serde_json::from_str(&body)?;
+    Ok(format_instant_answer(query, &ia_response))
 }
 
 #[cfg(test)]

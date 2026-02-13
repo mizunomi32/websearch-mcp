@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build (${{ matrix.target }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
+            artifact: websearch-mcp-linux-amd64
+          - target: aarch64-apple-darwin
+            runner: macos-14
+            artifact: websearch-mcp-darwin-arm64
+          - target: x86_64-apple-darwin
+            runner: macos-13
+            artifact: websearch-mcp-darwin-amd64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Rename binary
+        run: cp target/${{ matrix.target }}/release/websearch-mcp ${{ matrix.artifact }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package archives
+        run: |
+          for dir in artifacts/websearch-mcp-*; do
+            name=$(basename "$dir")
+            chmod +x "$dir/websearch-mcp-"*
+            cp "$dir/websearch-mcp-"* "$dir/websearch-mcp"
+            tar -czf "${name}.tar.gz" -C "$dir" websearch-mcp
+          done
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            websearch-mcp-linux-amd64.tar.gz
+            websearch-mcp-darwin-arm64.tar.gz
+            websearch-mcp-darwin-amd64.tar.gz

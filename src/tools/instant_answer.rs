@@ -1,3 +1,4 @@
+use crate::error::WebSearchError;
 use crate::models::instant_answer::{InstantAnswerResponse, RelatedTopic};
 
 pub fn format_instant_answer(query: &str, response: &InstantAnswerResponse) -> String {
@@ -40,6 +41,15 @@ pub fn format_instant_answer(query: &str, response: &InstantAnswerResponse) -> S
 
     output.push_str("_Source: DuckDuckGo Instant Answer API_");
     output
+}
+
+pub async fn execute_instant_answer(
+    client: &reqwest::Client,
+    base_url: &str,
+    query: &str,
+    timeout_secs: u64,
+) -> Result<String, WebSearchError> {
+    todo!()
 }
 
 #[cfg(test)]

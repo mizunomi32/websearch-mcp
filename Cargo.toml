@@ -16,6 +16,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
+rmcp = { version = "0.15", features = ["client", "transport-io"] }
 wiremock = "0.6"
 tokio-test = "0.4"
 assert_matches = "1.5"

@@ -62,17 +62,43 @@ impl Server {
     #[tool(description = "Search the web using DuckDuckGo and return results as Markdown")]
     async fn web_search(
         &self,
-        _params: Parameters<WebSearchParams>,
+        params: Parameters<WebSearchParams>,
     ) -> Result<CallToolResult, rmcp::ErrorData> {
-        todo!()
+        let max_results = params.0.max_results.unwrap_or(self.config.max_results);
+        Ok(
+            match execute_web_search(
+                &self.client,
+                &self.html_base_url,
+                &params.0.query,
+                max_results,
+                self.config.timeout_secs,
+            )
+            .await
+            {
+                Ok(markdown) => CallToolResult::success(vec![Content::text(markdown)]),
+                Err(e) => e.to_tool_result(),
+            },
+        )
     }
 
     #[tool(description = "Get an instant answer from DuckDuckGo for a given query")]
     async fn instant_answer(
         &self,
-        _params: Parameters<InstantAnswerParams>,
+        params: Parameters<InstantAnswerParams>,
     ) -> Result<CallToolResult, rmcp::ErrorData> {
-        todo!()
+        Ok(
+            match execute_instant_answer(
+                &self.client,
+                &self.api_base_url,
+                &params.0.query,
+                self.config.timeout_secs,
+            )
+            .await
+            {
+                Ok(markdown) => CallToolResult::success(vec![Content::text(markdown)]),
+                Err(e) => e.to_tool_result(),
+            },
+        )
     }
 }
 

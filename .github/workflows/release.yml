@@ -41,7 +41,7 @@ jobs:
       - name: Rename binary
         run: cp target/${{ matrix.target }}/release/websearch-mcp ${{ matrix.artifact }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.artifact }}

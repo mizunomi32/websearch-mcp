@@ -48,9 +48,7 @@ jobs:
         if: matrix.target == 'aarch64-unknown-linux-musl'
         run: |
           sudo apt-get update
-          sudo apt-get install -y musl-tools
-          curl -fsSL https://musl.cc/aarch64-linux-musl-cross.tgz | tar xz
-          echo "$PWD/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
+          sudo apt-get install -y musl-tools gcc-aarch64-linux-gnu
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -58,7 +56,9 @@ jobs:
 
       - name: Build
         env:
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: aarch64-linux-musl-gcc
+          CC_aarch64_unknown_linux_musl: aarch64-linux-gnu-gcc
+          AR_aarch64_unknown_linux_musl: aarch64-linux-gnu-ar
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: rust-lld
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Rename binary

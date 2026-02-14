@@ -16,6 +16,7 @@ assets = [
 ]
 
 [package.metadata.generate-rpm]
+auto-req = "no"
 assets = [
     { source = "target/release/websearch-mcp", dest = "/usr/bin/websearch-mcp", mode = "755" },
 ]

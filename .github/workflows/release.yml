@@ -18,6 +18,11 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-latest
             artifact: websearch-mcp-linux-amd64
+            deb_arch: amd64
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-latest
+            artifact: websearch-mcp-linux-arm64
+            deb_arch: arm64
           - target: aarch64-apple-darwin
             runner: macos-14
             artifact: websearch-mcp-darwin-arm64
@@ -31,11 +36,19 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: Install cross-compilation tools
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
 
       - name: Build
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Rename binary
@@ -45,6 +58,21 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.artifact }}
+
+      - name: Install cargo-deb
+        if: matrix.deb_arch
+        run: cargo install cargo-deb --locked
+
+      - name: Build .deb package
+        if: matrix.deb_arch
+        run: cargo deb --no-build --target ${{ matrix.target }}
+
+      - name: Upload .deb artifact
+        if: matrix.deb_arch
+        uses: actions/upload-artifact@v6
+        with:
+          name: deb-${{ matrix.deb_arch }}
+          path: target/${{ matrix.target }}/debian/*.deb
 
   release:
     name: Release
@@ -66,13 +94,60 @@ jobs:
             tar -czf "${name}.tar.gz" -C "$dir" websearch-mcp
           done
 
+      - name: Collect .deb files
+        run: |
+          for dir in artifacts/deb-*; do
+            cp "$dir"/*.deb . || true
+          done
+
       - uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: |
             websearch-mcp-linux-amd64.tar.gz
+            websearch-mcp-linux-arm64.tar.gz
             websearch-mcp-darwin-arm64.tar.gz
             websearch-mcp-darwin-amd64.tar.gz
+            *.deb
+
+  update-apt-repo:
+    name: Update APT Repository
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: "deb-*"
+          path: debs
+          merge-multiple: true
+
+      - name: Create APT repository
+        uses: morph027/apt-repo-action@v0.6.0
+        id: apt-repo
+        with:
+          repo-name: websearch-mcp
+          signing-key: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+          architectures: "amd64 arm64"
+          codename: stable
+          components: main
+          scan-dir: debs
+
+      - name: Copy GPG keyring
+        run: cp ${{ steps.apt-repo.outputs.keyring }} ${{ steps.apt-repo.outputs.dir }}/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ steps.apt-repo.outputs.dir }}
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   update-formula:
     name: Update Homebrew Formula

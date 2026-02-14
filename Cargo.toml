@@ -2,6 +2,18 @@
 name = "websearch-mcp"
 version = "0.1.0"
 edition = "2021"
+description = "MCP server providing DuckDuckGo web search"
+license = "MIT"
+homepage = "https://github.com/mizunomi32/websearch-mcp"
+repository = "https://github.com/mizunomi32/websearch-mcp"
+
+[package.metadata.deb]
+maintainer = "mizunomi32 <mizunomi32@users.noreply.github.com>"
+section = "utils"
+priority = "optional"
+assets = [
+    ["target/release/websearch-mcp", "usr/bin/", "755"],
+]
 
 [dependencies]
 rmcp = { version = "0.15", features = ["server", "transport-io"] }

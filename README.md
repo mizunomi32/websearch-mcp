@@ -40,6 +40,22 @@ brew tap mizunomi32/websearch-mcp https://github.com/mizunomi32/websearch-mcp.gi
 brew install websearch-mcp
 ```
 
+### APT (Debian/Ubuntu)
+
+```bash
+# GPG 鍵を追加
+curl -fsSL https://mizunomi32.github.io/websearch-mcp/websearch-mcp-keyring.gpg \
+  | sudo tee /usr/share/keyrings/websearch-mcp-keyring.gpg > /dev/null
+
+# リポジトリを追加
+echo "deb [signed-by=/usr/share/keyrings/websearch-mcp-keyring.gpg] https://mizunomi32.github.io/websearch-mcp stable main" \
+  | sudo tee /etc/apt/sources.list.d/websearch-mcp.list > /dev/null
+
+# インストール
+sudo apt update
+sudo apt install websearch-mcp
+```
+
 ### ソースからビルド
 
 ```bash

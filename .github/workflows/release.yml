@@ -167,8 +167,8 @@ jobs:
           components: main
           scan-dir: debs
 
-      - name: Copy GPG keyring
-        run: cp ${{ steps.apt-repo.outputs.keyring }} ${{ steps.apt-repo.outputs.dir }}/
+      - name: Create GPG keyring for APT
+        run: gpg --dearmor < ${{ steps.apt-repo.outputs.dir }}/gpg.key > ${{ steps.apt-repo.outputs.dir }}/websearch-mcp-keyring.gpg
 
       - name: Install RPM tools
         run: |

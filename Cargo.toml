@@ -33,6 +33,9 @@ thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
+[profile.release]
+strip = true
+
 [dev-dependencies]
 rmcp = { version = "0.15", features = ["client", "transport-io"] }
 wiremock = "0.6"

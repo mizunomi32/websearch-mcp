@@ -33,6 +33,18 @@ DuckDuckGo を使った Web 検索機能を提供する MCP (Model Context Proto
 
 ## インストール
 
+### Quick Install (Linux/macOS)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mizunomi32/websearch-mcp/main/install.sh | sh
+```
+
+インストール先を変更する場合:
+
+```bash
+INSTALL_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/mizunomi32/websearch-mcp/main/install.sh | sh
+```
+
 ### Homebrew (macOS)
 
 ```bash

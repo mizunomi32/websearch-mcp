@@ -15,6 +15,11 @@ assets = [
     ["target/release/websearch-mcp", "usr/bin/", "755"],
 ]
 
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/websearch-mcp", dest = "/usr/bin/websearch-mcp", mode = "755" },
+]
+
 [dependencies]
 rmcp = { version = "0.15", features = ["server", "transport-io"] }
 reqwest = { version = "0.13", features = ["json", "query"] }

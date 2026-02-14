@@ -56,6 +56,26 @@ sudo apt update
 sudo apt install websearch-mcp
 ```
 
+### YUM/DNF (Fedora/RHEL/CentOS)
+
+```bash
+# GPG 鍵をインポート
+sudo rpm --import https://mizunomi32.github.io/websearch-mcp/rpm/RPM-GPG-KEY-websearch-mcp
+
+# リポジトリを追加
+sudo tee /etc/yum.repos.d/websearch-mcp.repo << 'EOF'
+[websearch-mcp]
+name=websearch-mcp
+baseurl=https://mizunomi32.github.io/websearch-mcp/rpm/$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://mizunomi32.github.io/websearch-mcp/rpm/RPM-GPG-KEY-websearch-mcp
+EOF
+
+# インストール
+sudo dnf install websearch-mcp
+```
+
 ### ソースからビルド
 
 ```bash

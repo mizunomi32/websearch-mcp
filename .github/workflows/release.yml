@@ -19,10 +19,12 @@ jobs:
             runner: ubuntu-latest
             artifact: websearch-mcp-linux-amd64
             deb_arch: amd64
+            rpm_arch: x86_64
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-latest
             artifact: websearch-mcp-linux-arm64
             deb_arch: arm64
+            rpm_arch: aarch64
           - target: aarch64-apple-darwin
             runner: macos-14
             artifact: websearch-mcp-darwin-arm64
@@ -74,6 +76,21 @@ jobs:
           name: deb-${{ matrix.deb_arch }}
           path: target/${{ matrix.target }}/debian/*.deb
 
+      - name: Install cargo-generate-rpm
+        if: matrix.rpm_arch
+        run: cargo install cargo-generate-rpm --locked
+
+      - name: Build .rpm package
+        if: matrix.rpm_arch
+        run: cargo generate-rpm --target ${{ matrix.target }}
+
+      - name: Upload .rpm artifact
+        if: matrix.rpm_arch
+        uses: actions/upload-artifact@v6
+        with:
+          name: rpm-${{ matrix.rpm_arch }}
+          path: target/${{ matrix.target }}/generate-rpm/*.rpm
+
   release:
     name: Release
     needs: build
@@ -100,6 +117,12 @@ jobs:
             cp "$dir"/*.deb . || true
           done
 
+      - name: Collect .rpm files
+        run: |
+          for dir in artifacts/rpm-*; do
+            cp "$dir"/*.rpm . || true
+          done
+
       - uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
@@ -109,9 +132,10 @@ jobs:
             websearch-mcp-darwin-arm64.tar.gz
             websearch-mcp-darwin-amd64.tar.gz
             *.deb
+            *.rpm
 
-  update-apt-repo:
-    name: Update APT Repository
+  update-package-repos:
+    name: Update Package Repositories
     needs: release
     runs-on: ubuntu-latest
     permissions:
@@ -127,6 +151,11 @@ jobs:
           path: debs
           merge-multiple: true
 
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: "rpm-*"
+          path: rpms
+
       - name: Create APT repository
         uses: morph027/apt-repo-action@v3.7
         id: apt-repo
@@ -140,6 +169,32 @@ jobs:
 
       - name: Copy GPG keyring
         run: cp ${{ steps.apt-repo.outputs.keyring }} ${{ steps.apt-repo.outputs.dir }}/
+
+      - name: Install RPM tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y createrepo-c rpm
+
+      - name: Import GPG key
+        run: |
+          echo "${{ secrets.APT_GPG_PRIVATE_KEY }}" | gpg --batch --import
+
+      - name: Build YUM repository
+        run: |
+          REPO_DIR="${{ steps.apt-repo.outputs.dir }}/rpm"
+
+          for arch in x86_64 aarch64; do
+            mkdir -p "$REPO_DIR/$arch"
+            if [ -d "rpms/rpm-$arch" ]; then
+              cp rpms/rpm-$arch/*.rpm "$REPO_DIR/$arch/"
+              rpm --define "%_gpg_name $(gpg --list-secret-keys --keyid-format long | grep sec | head -1 | awk '{print $2}' | cut -d/ -f2)" \
+                  --addsign "$REPO_DIR/$arch/"*.rpm
+            fi
+            createrepo_c "$REPO_DIR/$arch"
+            gpg --batch --yes --detach-sign --armor "$REPO_DIR/$arch/repodata/repomd.xml"
+          done
+
+          gpg --batch --yes --armor --export > "$REPO_DIR/RPM-GPG-KEY-websearch-mcp"
 
       - uses: actions/upload-pages-artifact@v3
         with:

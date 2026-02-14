@@ -128,7 +128,7 @@ jobs:
           merge-multiple: true
 
       - name: Create APT repository
-        uses: morph027/apt-repo-action@v0.6.0
+        uses: morph027/apt-repo-action@v3.7
         id: apt-repo
         with:
           repo-name: websearch-mcp

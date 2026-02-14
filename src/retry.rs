@@ -3,10 +3,7 @@ use std::time::Duration;
 
 use crate::error::WebSearchError;
 
-pub async fn retry_with_backoff<F, Fut>(
-    max_retries: u32,
-    f: F,
-) -> Result<String, WebSearchError>
+pub async fn retry_with_backoff<F, Fut>(max_retries: u32, f: F) -> Result<String, WebSearchError>
 where
     F: Fn() -> Fut,
     Fut: Future<Output = Result<String, WebSearchError>>,

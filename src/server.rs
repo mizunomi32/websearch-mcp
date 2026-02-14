@@ -44,7 +44,9 @@ pub struct Server {
 impl Server {
     pub fn new(client: reqwest::Client, config: Config) -> Self {
         let cache = Arc::new(TtlCache::new(Duration::from_secs(config.cache_ttl_secs)));
-        let rate_limiter = Arc::new(RateLimiter::new(Duration::from_millis(config.rate_limit_ms)));
+        let rate_limiter = Arc::new(RateLimiter::new(Duration::from_millis(
+            config.rate_limit_ms,
+        )));
         Self {
             client,
             config,
@@ -63,7 +65,9 @@ impl Server {
         api_base_url: String,
     ) -> Self {
         let cache = Arc::new(TtlCache::new(Duration::from_secs(config.cache_ttl_secs)));
-        let rate_limiter = Arc::new(RateLimiter::new(Duration::from_millis(config.rate_limit_ms)));
+        let rate_limiter = Arc::new(RateLimiter::new(Duration::from_millis(
+            config.rate_limit_ms,
+        )));
         Self {
             client,
             config,
@@ -99,7 +103,9 @@ impl Server {
             let client = client.clone();
             let html_base_url = html_base_url.clone();
             let query = query.clone();
-            async move { execute_web_search(&client, &html_base_url, &query, max_results, timeout_secs).await }
+            async move {
+                execute_web_search(&client, &html_base_url, &query, max_results, timeout_secs).await
+            }
         })
         .await;
 

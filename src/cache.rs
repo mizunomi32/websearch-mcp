@@ -10,9 +10,7 @@ pub struct TtlCache {
 
 impl std::fmt::Debug for TtlCache {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("TtlCache")
-            .field("ttl", &self.ttl)
-            .finish()
+        f.debug_struct("TtlCache").field("ttl", &self.ttl).finish()
     }
 }
 

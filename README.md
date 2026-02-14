@@ -110,6 +110,9 @@ cargo build --release
 | `WEBSEARCH_MAX_RESULTS` | `web_search` のデフォルト最大検索結果数 | `10` |
 | `WEBSEARCH_TIMEOUT_SECS` | HTTP リクエストのタイムアウト（秒） | `10` |
 | `WEBSEARCH_USER_AGENT` | HTTP リクエストに使用する User-Agent 文字列 | `websearch-mcp/0.1` |
+| `WEBSEARCH_CACHE_TTL_SECS` | レスポンスキャッシュの TTL（秒） | `300` |
+| `WEBSEARCH_RATE_LIMIT_MS` | リクエスト間の最小間隔（ミリ秒） | `1000` |
+| `WEBSEARCH_MAX_RETRIES` | 429/5xx/タイムアウト時の最大リトライ回数 | `3` |
 
 ## 開発
 
@@ -145,6 +148,9 @@ src/
 ├── config.rs         # 環境変数読み込み
 ├── error.rs          # エラー型定義
 ├── http_client.rs    # HTTP クライアント構築
+├── cache.rs          # TTL 付きインメモリキャッシュ
+├── rate_limiter.rs   # リクエスト間隔制御
+├── retry.rs          # Exponential Backoff リトライ
 ├── tools/
 │   ├── web_search.rs      # Web 検索（HTML パース）
 │   └── instant_answer.rs  # Instant Answer（API 連携）

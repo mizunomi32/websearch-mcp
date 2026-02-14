@@ -1,3 +1,6 @@
+use std::sync::Arc;
+use std::time::Duration;
+
 use rmcp::handler::server::tool::ToolRouter;
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::{CallToolResult, Content, Implementation, ServerCapabilities, ServerInfo};
@@ -5,7 +8,10 @@ use rmcp::schemars;
 use rmcp::{tool, tool_handler, tool_router, ServerHandler};
 use serde::Deserialize;
 
+use crate::cache::TtlCache;
 use crate::config::Config;
+use crate::rate_limiter::RateLimiter;
+use crate::retry::retry_with_backoff;
 use crate::tools::instant_answer::execute_instant_answer;
 use crate::tools::web_search::execute_web_search;
 
@@ -29,17 +35,23 @@ pub struct Server {
     config: Config,
     html_base_url: String,
     api_base_url: String,
+    cache: Arc<TtlCache>,
+    rate_limiter: Arc<RateLimiter>,
     tool_router: ToolRouter<Self>,
 }
 
 #[tool_router]
 impl Server {
     pub fn new(client: reqwest::Client, config: Config) -> Self {
+        let cache = Arc::new(TtlCache::new(Duration::from_secs(config.cache_ttl_secs)));
+        let rate_limiter = Arc::new(RateLimiter::new(Duration::from_millis(config.rate_limit_ms)));
         Self {
             client,
             config,
             html_base_url: DUCKDUCKGO_HTML_BASE_URL.to_string(),
             api_base_url: DUCKDUCKGO_API_BASE_URL.to_string(),
+            cache,
+            rate_limiter,
             tool_router: Self::tool_router(),
         }
     }
@@ -50,11 +62,15 @@ impl Server {
         html_base_url: String,
         api_base_url: String,
     ) -> Self {
+        let cache = Arc::new(TtlCache::new(Duration::from_secs(config.cache_ttl_secs)));
+        let rate_limiter = Arc::new(RateLimiter::new(Duration::from_millis(config.rate_limit_ms)));
         Self {
             client,
             config,
             html_base_url,
             api_base_url,
+            cache,
+            rate_limiter,
             tool_router: Self::tool_router(),
         }
     }
@@ -65,20 +81,35 @@ impl Server {
         params: Parameters<WebSearchParams>,
     ) -> Result<CallToolResult, rmcp::ErrorData> {
         let max_results = params.0.max_results.unwrap_or(self.config.max_results);
-        Ok(
-            match execute_web_search(
-                &self.client,
-                &self.html_base_url,
-                &params.0.query,
-                max_results,
-                self.config.timeout_secs,
-            )
-            .await
-            {
-                Ok(markdown) => CallToolResult::success(vec![Content::text(markdown)]),
-                Err(e) => e.to_tool_result(),
-            },
-        )
+        let cache_key = format!("web_search:{}:{}", params.0.query, max_results);
+
+        if let Some(cached) = self.cache.get(&cache_key).await {
+            return Ok(CallToolResult::success(vec![Content::text(cached)]));
+        }
+
+        self.rate_limiter.acquire().await;
+
+        let client = self.client.clone();
+        let html_base_url = self.html_base_url.clone();
+        let query = params.0.query.clone();
+        let timeout_secs = self.config.timeout_secs;
+        let max_retries = self.config.max_retries;
+
+        let result = retry_with_backoff(max_retries, || {
+            let client = client.clone();
+            let html_base_url = html_base_url.clone();
+            let query = query.clone();
+            async move { execute_web_search(&client, &html_base_url, &query, max_results, timeout_secs).await }
+        })
+        .await;
+
+        Ok(match result {
+            Ok(markdown) => {
+                self.cache.set(cache_key, markdown.clone()).await;
+                CallToolResult::success(vec![Content::text(markdown)])
+            }
+            Err(e) => e.to_tool_result(),
+        })
     }
 
     #[tool(description = "Get an instant answer from DuckDuckGo for a given query")]
@@ -86,19 +117,35 @@ impl Server {
         &self,
         params: Parameters<InstantAnswerParams>,
     ) -> Result<CallToolResult, rmcp::ErrorData> {
-        Ok(
-            match execute_instant_answer(
-                &self.client,
-                &self.api_base_url,
-                &params.0.query,
-                self.config.timeout_secs,
-            )
-            .await
-            {
-                Ok(markdown) => CallToolResult::success(vec![Content::text(markdown)]),
-                Err(e) => e.to_tool_result(),
-            },
-        )
+        let cache_key = format!("instant_answer:{}", params.0.query);
+
+        if let Some(cached) = self.cache.get(&cache_key).await {
+            return Ok(CallToolResult::success(vec![Content::text(cached)]));
+        }
+
+        self.rate_limiter.acquire().await;
+
+        let client = self.client.clone();
+        let api_base_url = self.api_base_url.clone();
+        let query = params.0.query.clone();
+        let timeout_secs = self.config.timeout_secs;
+        let max_retries = self.config.max_retries;
+
+        let result = retry_with_backoff(max_retries, || {
+            let client = client.clone();
+            let api_base_url = api_base_url.clone();
+            let query = query.clone();
+            async move { execute_instant_answer(&client, &api_base_url, &query, timeout_secs).await }
+        })
+        .await;
+
+        Ok(match result {
+            Ok(markdown) => {
+                self.cache.set(cache_key, markdown.clone()).await;
+                CallToolResult::success(vec![Content::text(markdown)])
+            }
+            Err(e) => e.to_tool_result(),
+        })
     }
 }
 
@@ -127,6 +174,9 @@ mod tests {
             max_results: 10,
             timeout_secs: 10,
             user_agent: "test-agent".to_string(),
+            cache_ttl_secs: 300,
+            rate_limit_ms: 1000,
+            max_retries: 3,
         };
         let client = build_http_client(&config).unwrap();
         Server::new(client, config)

@@ -16,6 +16,9 @@ async fn setup_e2e(
         max_results: 10,
         timeout_secs: 10,
         user_agent: "test-agent".to_string(),
+        cache_ttl_secs: 0,
+        rate_limit_ms: 0,
+        max_retries: 3,
     };
     let client = build_http_client(&config).unwrap();
     let server = Server::with_base_urls(client, config, html_mock.uri(), api_mock.uri());

@@ -31,6 +31,19 @@ impl WebSearchError {
         }
     }
 
+    pub fn is_retryable(&self) -> bool {
+        match self {
+            Self::HttpError(e) => {
+                e.is_timeout()
+                    || e.status()
+                        .map(|s| s == 429 || s.is_server_error())
+                        .unwrap_or(false)
+            }
+            Self::Timeout(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn to_tool_result(&self) -> CallToolResult {
         match self {
             Self::NoResults(_) => CallToolResult::success(vec![Content::text(self.user_message())]),
@@ -82,5 +95,29 @@ mod tests {
         let err = WebSearchError::EmptyQuery;
         let result = err.to_tool_result();
         assert_eq!(result.is_error, Some(true));
+    }
+
+    #[test]
+    fn test_is_retryable_timeout() {
+        let err = WebSearchError::Timeout(10);
+        assert!(err.is_retryable());
+    }
+
+    #[test]
+    fn test_is_retryable_empty_query() {
+        let err = WebSearchError::EmptyQuery;
+        assert!(!err.is_retryable());
+    }
+
+    #[test]
+    fn test_is_retryable_html_parse_error() {
+        let err = WebSearchError::HtmlParseError("test".to_string());
+        assert!(!err.is_retryable());
+    }
+
+    #[test]
+    fn test_is_retryable_no_results() {
+        let err = WebSearchError::NoResults("test".to_string());
+        assert!(!err.is_retryable());
     }
 }

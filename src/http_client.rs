@@ -20,6 +20,9 @@ mod tests {
             max_results: 10,
             timeout_secs: 10,
             user_agent: "websearch-mcp/0.1".to_string(),
+            cache_ttl_secs: 300,
+            rate_limit_ms: 1000,
+            max_retries: 3,
         };
         assert!(build_http_client(&config).is_ok());
     }
@@ -30,6 +33,9 @@ mod tests {
             max_results: 5,
             timeout_secs: 30,
             user_agent: "custom-agent/2.0".to_string(),
+            cache_ttl_secs: 300,
+            rate_limit_ms: 1000,
+            max_retries: 3,
         };
         assert!(build_http_client(&config).is_ok());
     }

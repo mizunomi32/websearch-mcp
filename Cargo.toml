@@ -22,7 +22,7 @@ assets = [
 ]
 
 [dependencies]
-rmcp = { version = "0.15", features = ["server", "transport-io"] }
+rmcp = { version = "0.16", features = ["server", "transport-io"] }
 reqwest = { version = "0.13", features = ["json", "query"] }
 scraper = "0.25"
 tokio = { version = "1", features = ["full"] }
@@ -37,7 +37,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 strip = true
 
 [dev-dependencies]
-rmcp = { version = "0.15", features = ["client", "transport-io"] }
+rmcp = { version = "0.16", features = ["client", "transport-io"] }
 wiremock = "0.6"
 tokio-test = "0.4"
 assert_matches = "1.5"

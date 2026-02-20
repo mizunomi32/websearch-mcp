@@ -207,7 +207,7 @@ jobs:
 
           gpg --batch --yes --armor --export > "$REPO_DIR/RPM-GPG-KEY-websearch-mcp"
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: ${{ steps.apt-repo.outputs.dir }}
 

@@ -24,7 +24,7 @@ assets = [
 [dependencies]
 rmcp = { version = "0.15", features = ["server", "transport-io"] }
 reqwest = { version = "0.13", features = ["json", "query"] }
-scraper = "0.25"
+scraper = "0.26"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
